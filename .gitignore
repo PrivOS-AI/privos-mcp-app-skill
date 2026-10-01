@@ -1,0 +1,8 @@
+evals/results/
+node_modules/
+.env
+.env.*
+*.pem
+*.key
+privos-standalone-identity*
+.claude/settings.local.json

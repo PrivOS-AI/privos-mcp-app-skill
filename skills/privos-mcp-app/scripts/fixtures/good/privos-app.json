@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 3,
+  "kind": "mcp-app",
+  "name": "dev.fixture.notes",
+  "version": "1.0.0",
+  "title": "Fixture notes",
+  "description": "A small fixture app used to test the preflight script.",
+  "author": { "name": "Fixture author" },
+  "permissions": [
+    {
+      "scope": "basic:information",
+      "requirement": "required",
+      "context": "room",
+      "executionContext": "user",
+      "feature": "core.context",
+      "reason": "Identify the active room and the signed-in user."
+    },
+    {
+      "scope": "lists:read",
+      "requirement": "optional",
+      "context": "room",
+      "executionContext": "user",
+      "feature": "lists.overview",
+      "reason": "Show the lists of the room the app is open in.",
+      "degradedBehavior": "The app still opens but does not list the room's lists until access is granted."
+    },
+    {
+      "scope": "rooms:read",
+      "requirement": "required",
+      "context": "room",
+      "executionContext": "user",
+      "feature": "rooms.details",
+      "reason": "Show the name of the room the app is open in."
+    }
+  ],
+  "dataPolicy": {
+    "version": "2026-10-01",
+    "retention": "The app keeps no data of its own and stores nothing.",
+    "externalProcessing": false
+  },
+  "capabilities": { "verifiedActor": true },
+  "tools": [
+    {
+      "name": "notes_dashboard",
+      "title": "Notes dashboard",
+      "description": "Open the dashboard of this app.",
+      "inputSchema": { "type": "object", "properties": {} },
+      "ui": { "resourceUri": "ui://dev.fixture.notes/dashboard.html" }
+    }
+  ],
+  "port": 3001,
+  "volumes": [],
+  "stateless": true
+}

@@ -1,0 +1,13 @@
+{
+  "name": "privos",
+  "description": "PrivOS agent skills for building apps on the PrivOS platform.",
+  "owner": {
+    "name": "PrivOS"
+  },
+  "plugins": [
+    {
+      "name": "privos-mcp-app",
+      "source": "./"
+    }
+  ]
+}

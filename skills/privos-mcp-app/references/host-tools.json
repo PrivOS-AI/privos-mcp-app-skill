@@ -1,0 +1,360 @@
+{
+  "note": "Hub host tools as the UI calls them (privos.*; the Hub maps privos.X to mcpapp.X). scope null means no scope is needed. Hooks are from @privos_ai/app-react 0.8.0.",
+  "hooks": [
+    {
+      "hook": "useLists",
+      "hostTool": "privos.lists.getAll",
+      "scope": "lists:read"
+    },
+    {
+      "hook": "useRoom",
+      "hostTool": "privos.rooms.get",
+      "scope": "rooms:read"
+    },
+    {
+      "hook": "useFiles",
+      "hostTool": "privos.files.getAll",
+      "scope": null,
+      "broken": true,
+      "note": "privos.files.getAll does not exist on the Hub, so useFiles always fails. Use usePrivosTool('privos.files.getByChannel', { ... }) and declare files:read."
+    }
+  ],
+  "tools": [
+    {
+      "hostTool": "privos.bot.getCurrentRoomIdentity",
+      "scope": "bot:identity:read"
+    },
+    {
+      "hostTool": "privos.bot.getMe",
+      "scope": null
+    },
+    {
+      "hostTool": "privos.bot.joinCurrentRoom",
+      "scope": "bot:room:join"
+    },
+    {
+      "hostTool": "privos.bot.sendAttachment",
+      "scope": "bot:message:send"
+    },
+    {
+      "hostTool": "privos.bot.sendDirectMessage",
+      "scope": "bot:message:send"
+    },
+    {
+      "hostTool": "privos.bot.sendMessage",
+      "scope": "bot:message:send"
+    },
+    {
+      "hostTool": "privos.context.get",
+      "scope": null
+    },
+    {
+      "hostTool": "privos.db.aggregate",
+      "scope": "db:read"
+    },
+    {
+      "hostTool": "privos.db.cleanupOrphanedReferences",
+      "scope": "db:schema:write"
+    },
+    {
+      "hostTool": "privos.db.count",
+      "scope": "db:read"
+    },
+    {
+      "hostTool": "privos.db.create",
+      "scope": "db:write"
+    },
+    {
+      "hostTool": "privos.db.createMany",
+      "scope": "db:write"
+    },
+    {
+      "hostTool": "privos.db.delete",
+      "scope": "db:write"
+    },
+    {
+      "hostTool": "privos.db.deleteMany",
+      "scope": "db:write"
+    },
+    {
+      "hostTool": "privos.db.dropCollection",
+      "scope": "db:schema:write"
+    },
+    {
+      "hostTool": "privos.db.get",
+      "scope": "db:read"
+    },
+    {
+      "hostTool": "privos.db.getSchema",
+      "scope": "db:schema:read"
+    },
+    {
+      "hostTool": "privos.db.listCollections",
+      "scope": "db:schema:read"
+    },
+    {
+      "hostTool": "privos.db.populate",
+      "scope": "db:read"
+    },
+    {
+      "hostTool": "privos.db.query",
+      "scope": "db:read"
+    },
+    {
+      "hostTool": "privos.db.registerCollection",
+      "scope": "db:schema:write"
+    },
+    {
+      "hostTool": "privos.db.runMigrations",
+      "scope": "db:schema:write"
+    },
+    {
+      "hostTool": "privos.db.update",
+      "scope": "db:write"
+    },
+    {
+      "hostTool": "privos.db.updateMany",
+      "scope": "db:write"
+    },
+    {
+      "hostTool": "privos.db.updateSchema",
+      "scope": "db:schema:write"
+    },
+    {
+      "hostTool": "privos.files.count",
+      "scope": "files:read"
+    },
+    {
+      "hostTool": "privos.files.delete",
+      "scope": "files:write"
+    },
+    {
+      "hostTool": "privos.files.get",
+      "scope": "files:read"
+    },
+    {
+      "hostTool": "privos.files.getByChannel",
+      "scope": "files:read"
+    },
+    {
+      "hostTool": "privos.files.search",
+      "scope": "files:read"
+    },
+    {
+      "hostTool": "privos.files.update",
+      "scope": "files:write"
+    },
+    {
+      "hostTool": "privos.folders.create",
+      "scope": "files:write"
+    },
+    {
+      "hostTool": "privos.folders.delete",
+      "scope": "files:write"
+    },
+    {
+      "hostTool": "privos.folders.get",
+      "scope": "files:read"
+    },
+    {
+      "hostTool": "privos.folders.getByChannel",
+      "scope": "files:read"
+    },
+    {
+      "hostTool": "privos.folders.getContent",
+      "scope": "files:read"
+    },
+    {
+      "hostTool": "privos.folders.getRootContent",
+      "scope": "files:read"
+    },
+    {
+      "hostTool": "privos.folders.search",
+      "scope": "files:read"
+    },
+    {
+      "hostTool": "privos.folders.update",
+      "scope": "files:write"
+    },
+    {
+      "hostTool": "privos.lists.addField",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.lists.batchAddFields",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.lists.batchCreateItems",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.lists.create",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.lists.createItem",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.lists.delete",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.lists.deleteItem",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.lists.deleteItems",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.lists.deleteMany",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.lists.get",
+      "scope": "lists:read"
+    },
+    {
+      "hostTool": "privos.lists.getAll",
+      "scope": "lists:read"
+    },
+    {
+      "hostTool": "privos.lists.getItem",
+      "scope": "lists:read"
+    },
+    {
+      "hostTool": "privos.lists.getItems",
+      "scope": "lists:read"
+    },
+    {
+      "hostTool": "privos.lists.getItemsByStage",
+      "scope": "lists:read"
+    },
+    {
+      "hostTool": "privos.lists.getItemsByStages",
+      "scope": "lists:read"
+    },
+    {
+      "hostTool": "privos.lists.getSubItems",
+      "scope": "lists:read"
+    },
+    {
+      "hostTool": "privos.lists.moveItemToStage",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.lists.queryItems",
+      "scope": "lists:query"
+    },
+    {
+      "hostTool": "privos.lists.removeField",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.lists.reorderItem",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.lists.searchItems",
+      "scope": "lists:read"
+    },
+    {
+      "hostTool": "privos.lists.updateCustomField",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.lists.updateItem",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.lists.updateList",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.messages.getRecent",
+      "scope": "messages:read"
+    },
+    {
+      "hostTool": "privos.messages.send",
+      "scope": "messages:send"
+    },
+    {
+      "hostTool": "privos.notifications.create",
+      "scope": "notifications:write"
+    },
+    {
+      "hostTool": "privos.objects.get",
+      "scope": "db:read"
+    },
+    {
+      "hostTool": "privos.objects.head",
+      "scope": "db:read"
+    },
+    {
+      "hostTool": "privos.objects.put",
+      "scope": "db:write"
+    },
+    {
+      "hostTool": "privos.rooms.customPermissions.list",
+      "scope": "custom-permissions:read"
+    },
+    {
+      "hostTool": "privos.rooms.customPermissions.members",
+      "scope": "custom-permissions:read"
+    },
+    {
+      "hostTool": "privos.rooms.customPermissions.setItemAccess",
+      "scope": "custom-permissions:write"
+    },
+    {
+      "hostTool": "privos.rooms.get",
+      "scope": "rooms:read"
+    },
+    {
+      "hostTool": "privos.rooms.getMembers",
+      "scope": "rooms:read"
+    },
+    {
+      "hostTool": "privos.sandbox.getBotKeyStatus",
+      "scope": null
+    },
+    {
+      "hostTool": "privos.stages.create",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.stages.delete",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.stages.get",
+      "scope": "lists:read"
+    },
+    {
+      "hostTool": "privos.stages.getByList",
+      "scope": "lists:read"
+    },
+    {
+      "hostTool": "privos.stages.reorder",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.stages.update",
+      "scope": "lists:write"
+    },
+    {
+      "hostTool": "privos.users.get",
+      "scope": "users:read"
+    },
+    {
+      "hostTool": "privos.users.getByIds",
+      "scope": "users:read"
+    },
+    {
+      "hostTool": "privos.users.getCurrent",
+      "scope": "users:read"
+    }
+  ]
+}

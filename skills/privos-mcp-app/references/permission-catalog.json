@@ -1,0 +1,326 @@
+{
+  "catalogVersion": "2026-08-31",
+  "scopes": [
+    {
+      "scope": "basic:information",
+      "label": "Basic information",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user",
+        "background",
+        "both"
+      ]
+    },
+    {
+      "scope": "bot:identity:read",
+      "label": "Read this room's agent bot identity",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "bot:message:send",
+      "label": "Send bot messages",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "background"
+      ]
+    },
+    {
+      "scope": "bot:room:join",
+      "label": "Add the agent bot to this room",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "custom-permissions:read",
+      "label": "Read room custom permissions",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user",
+        "background",
+        "both"
+      ]
+    },
+    {
+      "scope": "custom-permissions:write",
+      "label": "Set item access grants",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user",
+        "background",
+        "both"
+      ]
+    },
+    {
+      "scope": "db:read",
+      "label": "Read app data",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user",
+        "background",
+        "both"
+      ]
+    },
+    {
+      "scope": "db:schema:read",
+      "label": "Read app schemas",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user",
+        "background",
+        "both"
+      ]
+    },
+    {
+      "scope": "db:schema:write",
+      "label": "Manage app schemas",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user",
+        "background",
+        "both"
+      ]
+    },
+    {
+      "scope": "db:write",
+      "label": "Manage app data",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user",
+        "background",
+        "both"
+      ]
+    },
+    {
+      "scope": "files:read",
+      "label": "Read files",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user",
+        "background",
+        "both"
+      ]
+    },
+    {
+      "scope": "files:write",
+      "label": "Manage files",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user",
+        "background",
+        "both"
+      ]
+    },
+    {
+      "scope": "lists:query",
+      "label": "Query list items",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user",
+        "background",
+        "both"
+      ]
+    },
+    {
+      "scope": "lists:read",
+      "label": "Read lists",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user",
+        "background",
+        "both"
+      ]
+    },
+    {
+      "scope": "lists:write",
+      "label": "Manage lists",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user",
+        "background",
+        "both"
+      ]
+    },
+    {
+      "scope": "messages:read",
+      "label": "Read messages",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "messages:send",
+      "label": "Send messages",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user",
+        "background",
+        "both"
+      ]
+    },
+    {
+      "scope": "notifications:write",
+      "label": "Send notifications",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user",
+        "background",
+        "both"
+      ]
+    },
+    {
+      "scope": "rooms:read",
+      "label": "Read rooms",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "rooms:write",
+      "label": "Manage rooms",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "sandbox:agent-sets:upload",
+      "label": "Upload agent sets",
+      "contexts": [
+        "workspace"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "sandbox:ai-chat",
+      "label": "Read AI chat",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "sandbox:ai-chat:write",
+      "label": "Use AI chat",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "sandbox:botkey:push",
+      "label": "Provision sandbox bot key",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "sandbox:generate",
+      "label": "Run sandbox agent",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "sandbox:skills:use",
+      "label": "Manage room skills",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "sandbox:wake",
+      "label": "Wake sandbox",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "users:read",
+      "label": "Read users",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    }
+  ]
+}

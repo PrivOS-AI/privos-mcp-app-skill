@@ -1,0 +1,9 @@
+{
+  "name": "privos-mcp-app",
+  "version": "0.1.0",
+  "description": "Build a PrivOS MCP app from an idea: scaffold, develop in your own workspace over Relay, and get it ready for Relay production or the PrivOS Marketplace.",
+  "license": "MIT",
+  "author": {
+    "name": "PrivOS"
+  }
+}

@@ -21,6 +21,22 @@
   ],
   "tools": [
     {
+      "hostTool": "privos.app.clearLocalData",
+      "scope": null
+    },
+    {
+      "hostTool": "privos.app.deleteLocalData",
+      "scope": null
+    },
+    {
+      "hostTool": "privos.app.getLocalData",
+      "scope": null
+    },
+    {
+      "hostTool": "privos.app.setLocalData",
+      "scope": null
+    },
+    {
       "hostTool": "privos.bot.getCurrentRoomIdentity",
       "scope": "bot:identity:read"
     },

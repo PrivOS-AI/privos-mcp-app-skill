@@ -39,6 +39,28 @@ the workspace ever disagree, the workspace wins: say so in the report and ask th
 | `db:write` | Manage app data | workspace, room | user, background, both |
 | `files:read` | Read files | workspace, room | user, background, both |
 | `files:write` | Manage files | workspace, room | user, background, both |
+| `firm-knowledge:admin` | Administer firm knowledge | room | user |
+| `firm-knowledge:answer:run` | Run cited knowledge answers | room | user |
+| `firm-knowledge:draft:write` | Propose knowledge drafts | room | user |
+| `firm-knowledge:evidence:read` | Read firm knowledge evidence | room | user |
+| `firm-knowledge:grants:write` | Manage firm knowledge content grants | room | user |
+| `firm-knowledge:quality:report` | Report knowledge issues | room | user |
+| `firm-knowledge:sop-approval:request` | Request SOP approvals | room | user |
+| `firm-knowledge:sop-run:cancel` | Cancel SOP runs | room | user |
+| `firm-knowledge:sop-run:read` | Read authorized SOP run state | room | user |
+| `firm-knowledge:sop-run:start` | Start SOP runs | room | user |
+| `firm-knowledge:sop-step:submit` | Submit SOP step output | room | user |
+| `firm-knowledge:sop:read` | Read SOP versions | room | user |
+| `firm-knowledge:workspace:answer:run` | Run workspace knowledge answers | workspace, room | user |
+| `firm-knowledge:workspace:audience` | Manage content audiences | workspace, room | user |
+| `firm-knowledge:workspace:connections` | Administer source connections | workspace, room | user |
+| `firm-knowledge:workspace:curate` | Curate the knowledge library | workspace, room | user |
+| `firm-knowledge:workspace:governance` | Administer product governance | workspace, room | user |
+| `firm-knowledge:workspace:quality` | Manage quality and freshness | workspace, room | user |
+| `firm-knowledge:workspace:read` | Use workspace knowledge search | workspace, room | user |
+| `firm-knowledge:workspace:records` | Administer records decisions | workspace, room | user |
+| `firm-knowledge:workspace:review` | Review and publish knowledge | workspace, room | user |
+| `firm-knowledge:workspace:sop` | Administer and run SOPs | workspace, room | user |
 | `lists:query` | Query list items | workspace, room | user, background, both |
 | `lists:read` | Read lists | workspace, room | user, background, both |
 | `lists:write` | Manage lists | workspace, room | user, background, both |
@@ -46,6 +68,7 @@ the workspace ever disagree, the workspace wins: say so in the report and ask th
 | `messages:send` | Send messages | room | user, background, both |
 | `notifications:write` | Send notifications | room | user, background, both |
 | `rooms:read` | Read rooms | workspace, room | user |
+| `rooms:roles:read` | Read the caller's own room and workspace roles | room | user |
 | `rooms:write` | Manage rooms | workspace, room | user |
 | `sandbox:agent-sets:upload` | Upload agent sets | workspace | user |
 | `sandbox:ai-chat` | Read AI chat | room | user |

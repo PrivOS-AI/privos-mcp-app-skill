@@ -1,6 +1,6 @@
 ---
 name: privos-mcp-app
-description: Build a PrivOS MCP app from an idea. Use when the user asks for an app, tool, room tab, dashboard or UI that runs inside a PrivOS workspace, to develop it in their own workspace over Relay, to run it in production on Relay, or to prepare it for the PrivOS Marketplace. Do not use for a generic MCP server that has nothing to do with PrivOS.
+description: Build a PrivOS MCP app from an idea. Use when the user asks for an app, tool, room tab, dashboard or UI that runs inside a PrivOS workspace, to develop it in their own workspace over Relay, to run it in production on Relay, or to prepare it for the PrivOS Marketplace — including checking whether an existing app (scaffolded or not) is ready to upload, or why an upload or marketplace build failed. Do not use for a generic MCP server that has nothing to do with PrivOS.
 license: MIT
 metadata: { tested-with: "create-privos-mcp-app 0.6.0, @privos_ai/app-server 0.12.3, @privos_ai/app-react 0.8.0, Claude Code 2.1.284" }
 ---
@@ -166,8 +166,12 @@ each tool and each scope-dependent UI state. Do not weaken a failing test.
 node <skill dir>/scripts/preflight.mjs      # <skill dir> = the directory that holds this SKILL.md
 ```
 
-Run it from the app's root directory, or pass the app directory as its argument. It prints one line per check and exits 0 when all
-pass, 2 when a check failed, 3 when a check was skipped. Fix failures and run it again. If it
+Run it from the app's root directory, or pass the app directory as its argument. It mirrors what the
+marketplace checks before and after approval: the manifest against the Portal schema and the permission
+catalog, the archive `git archive` produces, production dependency advisories (`npm audit`), the build,
+and the bare hardened image serving its manifest within 30 s. It prints one line per check and exits 0 when all
+pass, 2 when a check failed, 3 when a check was skipped. It works on an app that was not scaffolded too; for
+one moving to the marketplace read [existing-app-to-marketplace.md](references/existing-app-to-marketplace.md). Fix failures and run it again. If it
 exits 3, name each skipped check in the report (for example the docker check when docker is
 not available) and do not call the app verified for that check.
 
@@ -221,6 +225,7 @@ headless run, and what the user must do next (pairing, approval, publishing).
 | [ui.md](references/ui.md) | Hooks, scopes, theme, what stays out of UI code |
 | [relay-dev-and-production.md](references/relay-dev-and-production.md) | Pairing, dev loop, production, re-pairing |
 | [marketplace-submission.md](references/marketplace-submission.md) | Creator steps and review |
+| [existing-app-to-marketplace.md](references/existing-app-to-marketplace.md) | An app not built from the scaffold: SDK, startup, split UI, Dockerfile, archive |
 | [troubleshooting.md](references/troubleshooting.md) | Symptom to cause to fix |
 
 Data files: `references/permission-catalog.json` (scopes, contexts, catalog version) and

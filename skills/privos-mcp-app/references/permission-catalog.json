@@ -147,6 +147,236 @@
       ]
     },
     {
+      "scope": "firm-knowledge:admin",
+      "label": "Administer firm knowledge",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:answer:run",
+      "label": "Run cited knowledge answers",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:draft:write",
+      "label": "Propose knowledge drafts",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:evidence:read",
+      "label": "Read firm knowledge evidence",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:grants:write",
+      "label": "Manage firm knowledge content grants",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:quality:report",
+      "label": "Report knowledge issues",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:sop-approval:request",
+      "label": "Request SOP approvals",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:sop-run:cancel",
+      "label": "Cancel SOP runs",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:sop-run:read",
+      "label": "Read authorized SOP run state",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:sop-run:start",
+      "label": "Start SOP runs",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:sop-step:submit",
+      "label": "Submit SOP step output",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:sop:read",
+      "label": "Read SOP versions",
+      "contexts": [
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:workspace:answer:run",
+      "label": "Run workspace knowledge answers",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:workspace:audience",
+      "label": "Manage content audiences",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:workspace:connections",
+      "label": "Administer source connections",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:workspace:curate",
+      "label": "Curate the knowledge library",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:workspace:governance",
+      "label": "Administer product governance",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:workspace:quality",
+      "label": "Manage quality and freshness",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:workspace:read",
+      "label": "Use workspace knowledge search",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:workspace:records",
+      "label": "Administer records decisions",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:workspace:review",
+      "label": "Review and publish knowledge",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "firm-knowledge:workspace:sop",
+      "label": "Administer and run SOPs",
+      "contexts": [
+        "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
       "scope": "lists:query",
       "label": "Query list items",
       "contexts": [
@@ -224,6 +454,16 @@
       "label": "Read rooms",
       "contexts": [
         "workspace",
+        "room"
+      ],
+      "executionContexts": [
+        "user"
+      ]
+    },
+    {
+      "scope": "rooms:roles:read",
+      "label": "Read the caller's own room and workspace roles",
+      "contexts": [
         "room"
       ],
       "executionContexts": [

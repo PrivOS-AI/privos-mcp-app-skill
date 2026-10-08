@@ -21,6 +21,8 @@ jobs:
         run: npm install -g @anthropic-ai/claude-code@2.1.284
       - name: Skill checks
         run: bash scripts/check-skill.sh --require-claude
+      - name: Preflight tests
+        run: node --test skills/privos-mcp-app/scripts/preflight.test.mjs
       - name: Install gitleaks (pinned, checksum verified)
         env:
           GITLEAKS_VERSION: 8.30.1

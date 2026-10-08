@@ -48,6 +48,11 @@ const HARDENING = [
   '--pids-limit', '256', '--tmpfs', '/tmp:rw,noexec,nosuid,size=64m',
 ];
 const COMMAND_TIMEOUT_MS = 15 * 60 * 1000;
+const ENV_KEY = /^[A-Z][A-Z0-9_]{0,63}$/;
+const PLATFORM_ENV = ['PRIVOS_AGENT_BOT_CREDENTIAL', 'PRIVOS_AGENT_BOT_USER_ID'];
+const RUNTIME_SIZES = { XS: [256, 0.25], S: [512, 0.5], M: [1024, 1], L: [2048, 2], XL: [4096, 4] };
+// marketplace-policy.ts: paths the Portal refuses in an uploaded source archive.
+const DENIED_ARCHIVE_PATH = /(^|\/)\.git(\/|$)|(^|\/)\.env(\.|$)|(^|\/)\.privos\/skills(\/|$)|(^|\/)node_modules(\/|$)|(^|\/)\.\.(\/|$)/;
 
 const isObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const isText = (v, min, max) => typeof v === 'string' && v.trim().length >= min && v.trim().length <= max;
@@ -204,6 +209,106 @@ function catalogProblems(m, catalog) {
   return p;
 }
 
+/** env declarations: the cluster injects its own PRIVOS_* values and the runtime owns PORT, HOME and PATH. */
+function manifestEnvProblems(m) {
+  if (m.env === undefined) return [];
+  if (!Array.isArray(m.env)) return ['env must be an array'];
+  const p = m.env.length > 32 ? [`env lists ${m.env.length} entries (max 32)`] : [];
+  const keys = new Set();
+  m.env.forEach((e, i) => {
+    const at = `env[${i}]${isObject(e) && e.key ? ` (${e.key})` : ''}: `;
+    if (!isObject(e)) return p.push(`${at}must be an object`);
+    if (typeof e.key !== 'string' || !ENV_KEY.test(e.key)) p.push(`${at}key must match ${ENV_KEY}`);
+    else if (e.key.startsWith('PRIVOS_') && !PLATFORM_ENV.includes(e.key)) p.push(`${at}PRIVOS_ names are reserved for the platform (only ${PLATFORM_ENV.join(' and ')} may be declared); rename it, for example APP_${e.key.slice(7)}`);
+    else if (['PORT', 'HOME', 'PATH'].includes(e.key)) p.push(`${at}${e.key} belongs to the runtime`);
+    else if (keys.has(e.key)) p.push(`${at}duplicate key`);
+    else keys.add(e.key);
+    if (!isText(e.description, 1, 200)) p.push(`${at}description must be 1-200 characters`);
+    if (typeof e.required !== 'boolean' || typeof e.secret !== 'boolean') p.push(`${at}required and secret must be true or false`);
+  });
+  return p;
+}
+
+/** port, resources, runtime size, volumes, and the ui:// host the Hub fetches split assets under. */
+function manifestRuntimeProblems(m) {
+  const p = [];
+  if (m.port !== undefined && !(Number.isInteger(m.port) && m.port >= 1024 && m.port <= 65535)) p.push('port must be an integer 1024-65535');
+  const r = m.resources;
+  if (r !== undefined) {
+    if (!isObject(r)) p.push('resources must be an object');
+    else {
+      if (!(Number.isInteger(r.memoryMb) && r.memoryMb >= 64 && r.memoryMb <= 4096)) p.push('resources.memoryMb must be an integer 64-4096');
+      if (!(typeof r.cpus === 'number' && r.cpus >= 0.1 && r.cpus <= 4)) p.push('resources.cpus must be 0.1-4');
+      if (r.tmpSizeMb !== undefined && !(Number.isInteger(r.tmpSizeMb) && r.tmpSizeMb >= 16 && r.tmpSizeMb <= 1024)) p.push('resources.tmpSizeMb must be an integer 16-1024');
+      if (r.memoryMb > 2048 && m.runtime?.recommendedSize !== 'XL') p.push('resources.memoryMb above 2048 needs runtime.recommendedSize "XL"');
+    }
+  }
+  if (m.runtime !== undefined) {
+    const { minimumSize: lo, recommendedSize: hi } = isObject(m.runtime) ? m.runtime : {};
+    const order = Object.keys(RUNTIME_SIZES);
+    if (!RUNTIME_SIZES[lo] || !RUNTIME_SIZES[hi]) p.push(`runtime.minimumSize and recommendedSize must be one of ${order.join(', ')}`);
+    else {
+      if (order.indexOf(lo) > order.indexOf(hi)) p.push('runtime.minimumSize must not be larger than recommendedSize');
+      const [mem, cpus] = RUNTIME_SIZES[hi];
+      if (isObject(r) && (r.memoryMb !== mem || r.cpus !== cpus)) p.push(`resources must equal the ${hi} size (memoryMb ${mem}, cpus ${cpus})`);
+    }
+  }
+  if (Array.isArray(m.volumes)) {
+    if (m.volumes.length > 1) p.push('at most one volume');
+    m.volumes.forEach((v, i) => { if (!isObject(v) || v.name !== 'data') p.push(`volumes[${i}].name must be "data"`); });
+  }
+  (Array.isArray(m.tools) ? m.tools : []).forEach((tool, i) => {
+    const uri = tool?.ui?.resourceUri;
+    if (typeof uri !== 'string') return;
+    let host = null;
+    try { host = new URL(uri).host; } catch { /* reported below */ }
+    if (host !== m.name) p.push(`tools[${i}]: ui.resourceUri host "${host}" must equal the manifest name "${m.name}" (the Hub fetches split assets at ui://${m.name}/assets/...)`);
+  });
+  return p;
+}
+
+/** The zip the publish CLI uploads is `git archive HEAD` (export-ignore applies): check it like the Portal does. */
+function archiveProblems(appDir, manifest) {
+  const dir = mkdtempSync(join(tmpdir(), 'privos-archive-'));
+  try {
+    const zip = join(dir, 'source.zip');
+    const made = git(appDir, ['archive', '--format=zip', '-o', zip, 'HEAD']);
+    if (made.status !== 0) return { problems: [`git archive failed: ${oneLine(made.stderr)}`] };
+    const list = spawnSync('unzip', ['-Z1', zip], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+    if (list.error) return { skipped: 'unzip is not installed, so the archive entries were not listed' };
+    const entries = list.stdout.split('\n').filter(Boolean);
+    const bytes = statSync(zip).size;
+    const p = [];
+    const denied = entries.filter((e) => DENIED_ARCHIVE_PATH.test(e));
+    if (denied.length) p.push(`the Portal refuses ${denied.slice(0, 3).join(', ')}${denied.length > 3 ? ` and ${denied.length - 3} more` : ''} (add /<path> export-ignore to .gitattributes; .env.example counts)`);
+    if (!entries.includes('privos-app.json')) p.push('privos-app.json is not at the archive root');
+    if (manifest.executionMode !== 'INSTANT' && !entries.includes('Dockerfile')) p.push('Dockerfile is not at the archive root (required for every app except INSTANT)');
+    if (entries.length > 20000) p.push(`${entries.length} entries (max 20000)`);
+    if (bytes > 200 * 1024 * 1024) p.push(`${(bytes / 1048576).toFixed(0)} MB (max 200)`);
+    return { problems: p, summary: `${entries.length} entries, ${Math.ceil(bytes / 1024)} KB` };
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+/** A stale checkout packs old code: compare with the upstream branch after a fetch. */
+function upstreamCheck(appDir) {
+  const up = git(appDir, ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}']);
+  if (up.status !== 0) return pass('upstream', 'not applicable: the branch has no upstream');
+  const branch = up.stdout.trim();
+  const fetched = spawnSync('git', ['-C', appDir, 'fetch', '--quiet'], { encoding: 'utf8', timeout: 60_000 });
+  if (fetched.status !== 0) return skip('upstream', `git fetch failed, so freshness against ${branch} is unknown`);
+  const behind = git(appDir, ['rev-list', '--count', 'HEAD..@{u}']).stdout.trim();
+  return behind === '0' ? pass('upstream', `up to date with ${branch}`) : fail('upstream', `${behind} commit(s) behind ${branch}; pull before packaging`);
+}
+
+/** `npm audit --json` output to the production packages with a HIGH or CRITICAL advisory. */
+export function auditProblems(report) {
+  return Object.entries(report?.vulnerabilities ?? {})
+    .filter(([, v]) => v.severity === 'high' || v.severity === 'critical')
+    .map(([name, v]) => `${name} (${v.severity}${v.fixAvailable ? ', fix available' : ''})`);
+}
+
 function walk(dir, out = []) {
   for (const name of readdirSync(dir)) {
     const full = join(dir, name);
@@ -280,6 +385,7 @@ export function runStaticChecks(appDirArg, data = loadData()) {
     const dirty = git(appDir, ['status', '--porcelain']).stdout.split('\n').filter(Boolean);
     out.push(dirty.length ? fail('tree-clean', `${dirty.length} uncommitted or untracked path(s), for example ${dirty[0].trim()}`) : pass('tree-clean', 'no uncommitted changes'));
   } else out.push(skip('tree-clean', 'not a repository root'));
+  out.push(root === appDir ? upstreamCheck(appDir) : skip('upstream', 'not a repository root'));
 
   let manifest;
   try {
@@ -314,6 +420,8 @@ export function runStaticChecks(appDirArg, data = loadData()) {
   out.push(verdict('manifest-fields', manifestFieldProblems(manifest), 'top-level keys, tools and ui follow the Portal schema'));
   out.push(verdict('manifest-permissions', manifestPermissionProblems(manifest), 'reason, degradedBehavior and feature are valid'));
   out.push(verdict('manifest-data', manifestDataProblems(manifest), manifest.executionMode === 'INSTANT' ? 'INSTANT app: dataPolicy optional' : 'dataPolicy and stateless declared'));
+  out.push(verdict('manifest-env', manifestEnvProblems(manifest), 'env keys are declarable (no PRIVOS_*, PORT, HOME or PATH)'));
+  out.push(verdict('manifest-runtime', manifestRuntimeProblems(manifest), 'port, resources, volumes and the ui:// host are valid'));
   out.push(verdict('catalog-scopes', catalogProblems(manifest, data.catalog), `every scope is in the catalog (${data.catalog.catalogVersion}) with an allowed context`));
 
   const declared = new Set((Array.isArray(manifest.permissions) ? manifest.permissions : []).map((x) => x?.scope));
@@ -324,9 +432,12 @@ export function runStaticChecks(appDirArg, data = loadData()) {
     out.push(verdict('tracked-files', trackedFileProblems(appDir), 'no identity file, env file, key file or symlink is tracked'));
     const lock = git(appDir, ['ls-files', '--error-unmatch', 'package-lock.json']);
     out.push(lock.status === 0 ? pass('lockfile', 'package-lock.json is tracked') : fail('lockfile', 'package-lock.json is not tracked; the marketplace build runs npm ci'));
+    const archive = archiveProblems(appDir, manifest);
+    out.push(archive.skipped ? skip('archive', archive.skipped) : verdict('archive', archive.problems, `git archive HEAD: ${archive.summary}, nothing the Portal refuses`));
   } else {
     out.push(skip('tracked-files', 'not a repository root'));
     out.push(skip('lockfile', 'not a repository root'));
+    out.push(skip('archive', 'not a repository root'));
   }
   return out;
 }
@@ -363,12 +474,15 @@ function runCommandGroup(appDir) {
       continue;
     }
     const r = runCommand(appDir, args);
-    out.push(r.ok ? pass(check, okReason) : fail(check, `npm ${args.join(' ')} failed (${r.why})`));
+    const missing = !r.ok && /Missing script/i.test(r.text);
+    out.push(r.ok ? pass(check, okReason) : fail(check, missing
+      ? `package.json has no "${args.at(-1)}" script (a scaffolded app has it; see references/existing-app-to-marketplace.md)`
+      : `npm ${args.join(' ')} failed (${r.why})`));
     if (!r.ok) stopped = check;
   }
   if (stopped) {
     out.push(skip('publish-dry-run', `not run: ${stopped} failed`));
-    return { out, built: false };
+    return { out, built: out.some((r) => r.check === 'build' && r.status === 'PASS') };
   }
   const hashes = [];
   for (let i = 0; i < 2; i++) {
@@ -382,6 +496,16 @@ function runCommandGroup(appDir) {
   if (!hashes[0] || hashes[0] !== hashes[1]) out.push(fail('publish-dry-run', `the two dry-runs do not print the same sha256 (${hashes[0]} and ${hashes[1]})`));
   else out.push(pass('publish-dry-run', `twice, archive sha256 ${hashes[0].slice(0, 16)}...`));
   return { out, built: true };
+}
+
+/** The marketplace source scan fails a version on a HIGH or CRITICAL advisory in a production dependency. */
+function checkAudit(appDir) {
+  const r = spawnSync('npm', ['audit', '--omit=dev', '--json'], { cwd: appDir, env: cleanEnv(), encoding: 'utf8', timeout: 5 * 60 * 1000, maxBuffer: 64 * 1024 * 1024 });
+  let report = null;
+  try { report = JSON.parse(r.stdout); } catch { /* handled below */ }
+  if (!report || report.error) return skip('npm-audit', `npm audit did not return a report (${oneLine(report?.error?.summary ?? r.stderr ?? r.error?.message ?? 'no output', 160)})`);
+  const problems = auditProblems(report);
+  return problems.length ? fail('npm-audit', `production dependencies with a HIGH or CRITICAL advisory: ${problems.join(', ')}; npm update or overrides, then commit package-lock.json`) : pass('npm-audit', 'no HIGH or CRITICAL advisory in production dependencies');
 }
 
 // --- server -------------------------------------------------------------------
@@ -524,22 +648,32 @@ async function checkDockerImage(appDir, manifest) {
       const tail = `${build.stdout}\n${build.stderr}`.split('\n').map((l) => l.trim()).filter(Boolean).slice(-3).join(' | ');
       return fail(check, `docker build failed: ${tail}`);
     }
-    const run = docker(['run', '-d', '--label', label, ...HARDENING, tag], 120_000);
-    if (run.status !== 0) return fail(check, `docker run failed: ${oneLine(run.stderr, 200)}`);
-    cid = run.stdout.trim();
-    const inspect = (format, target = cid) => docker(['inspect', target, '--format', format], 30_000).stdout.trim();
-    const ip = inspect('{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}');
+    const inspect = (format, target) => docker(['inspect', target, '--format', format], 30_000).stdout.trim();
+    // The build node's port order: EXPOSEd ports, then PORT from the image env, then 8080 and 3000.
     const exposed = inspect('{{range $p, $_ := .Config.ExposedPorts}}{{println $p}}{{end}}', tag).split('\n').map((l) => l.match(/^\d+/)?.[0]);
     const envPort = inspect('{{range .Config.Env}}{{println .}}{{end}}', tag).match(/^PORT=(\d+)$/m)?.[1];
     const ports = [...new Set([...exposed, envPort, '8080', '3000'].filter(Boolean))];
-    if (!ip) return fail(check, 'the container has no network address; it may have exited');
+    // Also publish each port on loopback: Docker Desktop (macOS, Windows) cannot reach a container's IP.
+    const publish = ports.flatMap((port) => ['-p', `127.0.0.1::${port}`]);
+    const run = docker(['run', '-d', '--label', label, ...HARDENING, ...publish, tag], 120_000);
+    if (run.status !== 0) return fail(check, `docker run failed: ${oneLine(run.stderr, 200)}`);
+    cid = run.stdout.trim();
+    const ip = inspect('{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}', cid);
+    const targets = ports.map((port) => {
+      const host = docker(['port', cid, `${port}/tcp`], 30_000).stdout.match(/127\.0\.0\.1:(\d+)/)?.[1];
+      return [port, [ip && `http://${ip}:${port}`, host && `http://127.0.0.1:${host}`].filter(Boolean)];
+    });
     for (let i = 0; i < 30; i++) {
-      for (const port of ports) {
-        try {
-          const response = await fetch(`http://${ip}:${port}/.well-known/mcp/manifest.json`, { signal: AbortSignal.timeout(2000) });
+      for (const [port, bases] of targets) {
+        for (const base of bases) try {
+          const response = await fetch(`${base}/.well-known/mcp/manifest.json`, { signal: AbortSignal.timeout(2000) });
           if (!response.ok) continue;
           const served = await response.json();
-          if (JSON.stringify(sortKeys(served)) !== JSON.stringify(sortKeys(manifest))) return fail(check, 'the served manifest differs from privos-app.json');
+          if (JSON.stringify(sortKeys(served)) !== JSON.stringify(sortKeys(manifest))) {
+            const keys = [...new Set([...Object.keys(served ?? {}), ...Object.keys(manifest)])]
+              .filter((k) => JSON.stringify(sortKeys(served?.[k])) !== JSON.stringify(sortKeys(manifest[k])));
+            return fail(check, `the served manifest differs from privos-app.json in: ${keys.join(', ')}`);
+          }
           return pass(check, `the bare hardened image served its manifest on port ${port}`);
         } catch { /* not up yet */ }
       }
@@ -585,6 +719,7 @@ async function main() {
 
   const { out, built } = runCommandGroup(appDir);
   emit(out);
+  emit([checkAudit(appDir)]);
 
   let pkg = {};
   try { pkg = JSON.parse(readFileSync(join(appDir, 'package.json'), 'utf8')); } catch { /* reported by name-version */ }

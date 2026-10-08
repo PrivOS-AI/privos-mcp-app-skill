@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 import { after, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { listingSlug, loadData, runStaticChecks } from './preflight.mjs';
+import { auditProblems, listingSlug, loadData, runStaticChecks } from './preflight.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const GOOD = join(HERE, 'fixtures', 'good');
@@ -181,6 +181,69 @@ describe('static checks', () => {
     assert.match(get(unknown, 'catalog-scopes').reason, /made:up is not in the permission catalog/);
     const badContext = run(app(editManifest((m) => { m.permissions[2].executionContext = 'background'; })));
     assert.match(get(badContext, 'catalog-scopes').reason, /rooms:read is not allowed with executionContext "background"/);
+  });
+});
+
+describe('marketplace gates', () => {
+  it('a PRIVOS_ env key fails, the two platform keys pass', () => {
+    const bad = run(app(editManifest((m) => { m.env = [{ key: 'PRIVOS_URL', description: 'Hub URL.', required: false, secret: false }]; })));
+    assert.equal(get(bad, 'manifest-env').status, 'FAIL');
+    assert.match(get(bad, 'manifest-env').reason, /reserved/);
+    const ok = run(app(editManifest((m) => { m.env = [{ key: 'PRIVOS_AGENT_BOT_CREDENTIAL', description: 'Bot credential.', required: false, secret: true }]; })));
+    assert.equal(get(ok, 'manifest-env').status, 'PASS');
+  });
+
+  it('a ui:// host that is not the manifest name fails', () => {
+    const results = run(app(editManifest((m) => { m.tools[0].ui.resourceUri = 'ui://notes/dashboard.html'; })));
+    assert.equal(get(results, 'manifest-runtime').status, 'FAIL');
+    assert.match(get(results, 'manifest-runtime').reason, /must equal the manifest name/);
+  });
+
+  it('resources that do not match the declared runtime size fail', () => {
+    const results = run(app(editManifest((m) => {
+      m.runtime = { minimumSize: 'S', recommendedSize: 'M' };
+      m.resources = { memoryMb: 512, cpus: 0.5 };
+    })));
+    assert.match(get(results, 'manifest-runtime').reason, /must equal the M size/);
+  });
+
+  it('a tracked .env.example is refused in the archive unless export-ignored', () => {
+    const bad = run(app((dir) => writeFileSync(join(dir, '.env.example'), 'X=1\n')));
+    assert.equal(get(bad, 'archive').status, 'FAIL');
+    assert.match(get(bad, 'archive').reason, /\.env\.example/);
+    const ok = run(app((dir) => {
+      writeFileSync(join(dir, '.env.example'), 'X=1\n');
+      writeFileSync(join(dir, '.gitattributes'), '/.env.example export-ignore\n');
+    }));
+    assert.equal(get(ok, 'archive').status, 'PASS');
+  });
+
+  it('a runtime app without a Dockerfile fails the archive check', () => {
+    const results = run(app((dir) => rmSync(join(dir, 'Dockerfile'))));
+    assert.match(get(results, 'archive').reason, /Dockerfile/);
+  });
+
+  it('a branch behind its upstream fails', () => {
+    const remote = join(scratch, `remote-${counter++}.git`);
+    git(scratch, 'init', '-q', '--bare', '-b', 'main', remote);
+    const dir = app();
+    git(dir, 'remote', 'add', 'origin', remote);
+    git(dir, 'push', '-q', '-u', 'origin', 'main');
+    assert.equal(get(run(dir), 'upstream').status, 'PASS');
+    const other = join(scratch, `clone-${counter++}`);
+    git(scratch, 'clone', '-q', remote, other);
+    writeFileSync(join(other, 'NOTE.md'), 'newer\n');
+    git(other, 'add', 'NOTE.md');
+    git(other, 'commit', '-q', '-m', 'newer');
+    git(other, 'push', '-q');
+    const behind = get(run(dir), 'upstream');
+    assert.equal(behind.status, 'FAIL');
+    assert.match(behind.reason, /1 commit\(s\) behind/);
+  });
+
+  it('auditProblems keeps only HIGH and CRITICAL advisories', () => {
+    const report = { vulnerabilities: { a: { severity: 'critical', fixAvailable: true }, b: { severity: 'moderate' }, c: { severity: 'high' } } };
+    assert.deepEqual(auditProblems(report), ['a (critical, fix available)', 'c (high)']);
   });
 });
 

@@ -69,6 +69,8 @@ pasted into the conversation: describe what to check and let the user do it.
 | `DIRTY_TREE` | Uncommitted or untracked files | Commit the intended files (never `--allow-dirty` unless the user asks) |
 | `NOT_GIT_REPOSITORY` | The app is inside another repository, or has no commits | Make the app its own repository root and commit |
 | `CREDENTIAL_FILE_FOUND`, `DENIED_PATH_IN_ARCHIVE` | An env file, key, identity file or `node_modules` is tracked | Untrack it and keep it in `.gitignore` |
+| Upload `400 denied_path` for `.env.example` | The Portal refuses every `.env*` path, including `.env.example` | Add `/.env.example export-ignore` to `.gitattributes` (the archive is `git archive HEAD`) |
+| `manifest_invalid`: `PRIVOS_ environment names are reserved` | An `env` key starts with `PRIVOS_` | Rename it (for example `APP_…`); only `PRIVOS_AGENT_BOT_CREDENTIAL` and `PRIVOS_AGENT_BOT_USER_ID` may be declared |
 | `MISSING_REQUIRED_ENTRY` | `privos-app.json` or (server apps) `Dockerfile` is not at the root | Track both at the root |
 | `MANIFEST_IDENTITY_MISMATCH` | `name` or `version` differ between the two files | Make them equal |
 | `VERSION_SEMVER_EXISTS` | The version is already published | Bump both versions |
@@ -80,6 +82,19 @@ pasted into the conversation: describe what to check and let the user do it.
 | `AUTHORIZATION_EXPIRED` | Nobody approved within 15 minutes | Run it again and approve promptly |
 | `PREFLIGHT_FAILED` after submit | The automated scan rejected the archive | Fix the findings, bump the version, publish again |
 | Marketplace install fails with `mcp_app_id_conflict` | The same app id is live from Relay in that workspace | Uninstall the Relay copy there first |
+
+## After approval (build node)
+
+The build job runs once, when the version is approved, and is not retried: a version that fails here
+is finished. Fix the cause and publish a new version.
+
+| Code or symptom | Cause | Fix |
+|---|---|---|
+| `SCAN_FAILED` | A HIGH or CRITICAL advisory in a production dependency | `npm update <pkg>` or `overrides`, commit `package-lock.json`; preflight check `npm-audit` |
+| `IMAGE_SCAN_FAILED` | A HIGH or CRITICAL advisory in an OS package of the image | `RUN apk --no-cache upgrade` in the runtime stage of the `Dockerfile` |
+| `PACKAGING_FAILED runtime_manifest_unavailable` | The image, run with no env on a read-only root filesystem, did not serve `/.well-known/mcp/manifest.json` within 30 s | Start the server even without an identity (see [existing-app-to-marketplace.md](existing-app-to-marketplace.md#the-image-must-start-with-nothing)); preflight check `docker-image` |
+| `PACKAGING_FAILED` stage `ui-build`, `exceeds the 2097152 byte per-asset limit` | The UI is built as one large chunk | Split build, no `inlineDynamicImports` / `codeSplitting: false` ([existing-app-to-marketplace.md](existing-app-to-marketplace.md#split-ui-build)) |
+| `PACKAGING_FAILED` stage `ui-build`, `cannot read …/index.html` | `ui.distDir` is missing or wrong, or the shell is not named `index.html` | Set `ui.distDir` to the build output and emit `index.html` there |
 
 Sources: [install and operate your own MCP app](https://github.com/PrivOS-AI/privos-dev-docs/blob/main/mcp-app-platform/install-and-operate-your-own-mcp-app.md),
 [publishing CLI](https://github.com/PrivOS-AI/privos-dev-docs/blob/main/mcp-app-platform/publishing-cli.md),
